@@ -1,0 +1,28 @@
+name: nse_corporate_actions
+description: >
+  Corporate actions announced on NSE (dividends, splits, bonuses, rights, buybacks) with ex and
+  record dates. They explain price jumps and drive the adjustment-factor table.
+source: nse
+source_url: https://www.nseindia.com/api/corporates-corporateActions?index=equities
+schedule: "Daily; actions are announced weeks before the ex-date"
+grain: one row per (symbol, ex_date, subject)
+natural_key: [symbol, ex_date, subject]
+columns:
+  - {name: symbol, dtype: str, nullable: false, description: NSE ticker}
+  - {name: series, dtype: str, nullable: true, description: Series the action applies to}
+  - {name: isin, dtype: str, nullable: true, description: ISIN at announcement}
+  - {name: company, dtype: str, nullable: true, description: Company name}
+  - {name: subject, dtype: str, nullable: false, description: "Free text from NSE, e.g. 'Dividend - Rs 10 Per Share'"}
+  - {name: ex_date, dtype: date, nullable: false, description: First session the stock trades without the entitlement}
+  - {name: record_date, dtype: date, nullable: true, description: Date the register of members is frozen}
+  - {name: face_value, dtype: float, nullable: true, description: "Face value at announcement, INR"}
+  - {name: action_type, dtype: str, nullable: false, isin_set: [dividend, split, bonus, rights, buyback, other], description: Category parsed from subject}
+  - {name: ratio, dtype: float, nullable: true, gt: 0, description: "Price adjustment ratio for split/bonus (post price / pre price)"}
+  - {name: amount, dtype: float, nullable: true, ge: 0, description: "Cash per share for dividends, INR"}
+  - {name: ingest_ts, dtype: datetime, nullable: false, description: Download time (UTC)}
+quality:
+  completeness_min: 0.95
+  validity_min: 0.99
+  uniqueness_min: 1.0
+rules:
+  duplicate_keys: {severity: medium}

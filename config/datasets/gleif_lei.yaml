@@ -1,0 +1,22 @@
+name: gleif_lei
+description: GLEIF Legal Entity Identifier records for the issuers in the universe (looked up by ISIN), including the direct parent LEI.
+source: gleif
+source_url: "https://api.gleif.org/api/v1/lei-records?filter[isin]={isin}"
+schedule: "Weekly"
+grain: one row per ISIN
+natural_key: [isin]
+columns:
+  - {name: isin, dtype: str, nullable: false, pattern: "^IN[A-Z0-9]{9}[0-9]$", description: Queried ISIN}
+  - {name: lei, dtype: str, nullable: false, pattern: "^[A-Z0-9]{18}[0-9]{2}$", description: 20-character ISO 17442 LEI}
+  - {name: legal_name, dtype: str, nullable: false, description: Registered legal name}
+  - {name: country, dtype: str, nullable: true, description: Legal address country}
+  - {name: entity_status, dtype: str, nullable: true, description: ACTIVE / INACTIVE}
+  - {name: registration_status, dtype: str, nullable: true, description: ISSUED / LAPSED / ...}
+  - {name: parent_lei, dtype: str, nullable: true, description: Direct accounting-consolidation parent LEI, if reported}
+  - {name: ingest_ts, dtype: datetime, nullable: false, description: Download time (UTC)}
+quality:
+  completeness_min: 0.9
+  validity_min: 1.0
+  uniqueness_min: 1.0
+rules:
+  duplicate_keys: {severity: medium}

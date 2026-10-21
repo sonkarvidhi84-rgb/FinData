@@ -1,0 +1,21 @@
+name: worldbank_macro
+description: "World Bank WDI annual indicators for India: GDP (current US$), CPI inflation, population."
+source: worldbank
+source_url: https://api.worldbank.org/v2/country/IND/indicator/{indicator}?format=json
+schedule: "Annual, revised several times a year"
+grain: one row per (series_id, obs_date)
+natural_key: [series_id, obs_date]
+series: [NY.GDP.MKTP.CD, FP.CPI.TOTL.ZG, SP.POP.TOTL]
+columns:
+  - {name: series_id, dtype: str, nullable: false, description: WDI indicator code}
+  - {name: obs_date, dtype: date, nullable: false, description: Jan 1 of the observation year}
+  - {name: value, dtype: float, nullable: true, description: Indicator value}
+  - {name: vintage_date, dtype: date, nullable: false, description: Date we observed this value}
+  - {name: ingest_ts, dtype: datetime, nullable: false, description: Download time (UTC)}
+quality:
+  completeness_min: 0.8
+  validity_min: 1.0
+  uniqueness_min: 1.0
+rules:
+  duplicate_keys: {severity: high}
+  macro_revision_detected: {severity: low}

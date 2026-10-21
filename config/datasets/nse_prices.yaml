@@ -1,0 +1,42 @@
+name: nse_prices
+description: >
+  NSE capital-market bhavcopy (UDiFF format): official end-of-day OHLCV for every security
+  traded on the NSE cash segment. This is the primary price source.
+source: nse
+source_url: https://nsearchives.nseindia.com/content/cm/BhavCopy_NSE_CM_0_0_0_{YYYYMMDD}_F_0000.csv.zip
+schedule: "Business days, after ~18:00 IST"
+grain: one row per (isin, trade_date) for series EQ
+natural_key: [isin, trade_date]
+columns:
+  - {name: trade_date, dtype: date, nullable: false, description: Trading session date (IST)}
+  - {name: symbol, dtype: str, nullable: false, description: NSE ticker (TckrSymb)}
+  - {name: series, dtype: str, nullable: false, description: "Trading series; EQ = rolling-settlement equity"}
+  - {name: isin, dtype: str, nullable: false, pattern: "^IN[A-Z0-9]{9}[0-9]$", description: ISIN of the instrument}
+  - {name: name, dtype: str, nullable: true, description: Instrument name as published}
+  - {name: open, dtype: float, nullable: false, gt: 0, description: "Opening price, INR"}
+  - {name: high, dtype: float, nullable: false, gt: 0, description: "Session high, INR"}
+  - {name: low, dtype: float, nullable: false, gt: 0, description: "Session low, INR"}
+  - {name: close, dtype: float, nullable: false, gt: 0, description: "Official closing price, INR"}
+  - {name: prev_close, dtype: float, nullable: true, description: Previous close as published by NSE}
+  - {name: volume, dtype: float, nullable: false, ge: 0, description: Shares traded}
+  - {name: turnover, dtype: float, nullable: true, ge: 0, description: "Traded value, INR"}
+  - {name: trades, dtype: float, nullable: true, ge: 0, description: Number of trades}
+  - {name: source_ts, dtype: datetime, nullable: true, description: "HTTP Last-Modified of the file (UTC): when NSE published it"}
+  - {name: ingest_ts, dtype: datetime, nullable: false, description: When we downloaded it (UTC)}
+quality:
+  completeness_min: 0.99
+  timeliness_max_hours: 6
+  validity_min: 0.999
+  uniqueness_min: 1.0
+  accuracy_tolerance_pct: 0.5
+  accuracy_min: 0.98
+  consistency_min: 0.999
+rules:
+  ohlc_sanity: {severity: high}
+  duplicate_keys: {severity: high}
+  missing_trading_days: {severity: medium}
+  stale_price: {severity: medium, min_sessions: 5}
+  unexplained_jump: {severity: high, threshold: 0.15, window_days: 2}
+  split_adjustment_check: {severity: high, tolerance: 0.15}
+  cross_source_price_diff: {severity: medium, threshold_pct: 0.5}
+  identifier_conflict: {severity: high}

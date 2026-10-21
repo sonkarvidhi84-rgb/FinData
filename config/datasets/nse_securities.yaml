@@ -1,0 +1,21 @@
+name: nse_securities
+description: "NSE equity master (EQUITY_L.csv): current symbol, ISIN, listing date and face value of every listed equity."
+source: nse
+source_url: https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv
+schedule: "Snapshot; refreshed on every ingest"
+grain: one row per symbol
+natural_key: [symbol]
+columns:
+  - {name: symbol, dtype: str, nullable: false, description: NSE ticker}
+  - {name: company, dtype: str, nullable: false, description: Company name}
+  - {name: series, dtype: str, nullable: true, description: Series}
+  - {name: listing_date, dtype: date, nullable: true, description: Date of listing on NSE}
+  - {name: isin, dtype: str, nullable: false, pattern: "^IN[A-Z0-9]{9}[0-9]$", description: Current ISIN}
+  - {name: face_value, dtype: float, nullable: true, gt: 0, description: "Current face value, INR"}
+  - {name: snapshot_date, dtype: date, nullable: false, description: Date the master was downloaded}
+quality:
+  completeness_min: 1.0
+  validity_min: 1.0
+  uniqueness_min: 1.0
+rules:
+  duplicate_keys: {severity: high}

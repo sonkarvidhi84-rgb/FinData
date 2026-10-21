@@ -1,0 +1,26 @@
+# Demo universe: 20 NIFTY-50 constituents chosen for sector spread.
+# Sector = "Industry" column of niftyindices.com/IndexConstituent/ind_nifty50list.csv,
+# snapshot taken 2026-10-21 (classification may differ from 2024; see docs/known-issues.md).
+# NESTLEIND is included on purpose: 1:10 face-value split, ex-date 2024-01-05.
+exchange: XNSE
+securities:
+  - {symbol: RELIANCE,   sector: "Oil Gas & Consumable Fuels"}
+  - {symbol: TCS,        sector: "Information Technology"}
+  - {symbol: HDFCBANK,   sector: "Financial Services"}
+  - {symbol: INFY,       sector: "Information Technology"}
+  - {symbol: ICICIBANK,  sector: "Financial Services"}
+  - {symbol: HINDUNILVR, sector: "Fast Moving Consumer Goods"}
+  - {symbol: ITC,        sector: "Fast Moving Consumer Goods"}
+  - {symbol: SBIN,       sector: "Financial Services"}
+  - {symbol: BHARTIARTL, sector: "Telecommunication"}
+  - {symbol: KOTAKBANK,  sector: "Financial Services"}
+  - {symbol: LT,         sector: "Construction"}
+  - {symbol: AXISBANK,   sector: "Financial Services"}
+  - {symbol: ASIANPAINT, sector: "Consumer Durables"}
+  - {symbol: MARUTI,     sector: "Automobile and Auto Components"}
+  - {symbol: SUNPHARMA,  sector: "Healthcare"}
+  - {symbol: TITAN,      sector: "Consumer Durables"}
+  - {symbol: NESTLEIND,  sector: "Fast Moving Consumer Goods"}
+  - {symbol: ULTRACEMCO, sector: "Construction Materials"}
+  - {symbol: NTPC,       sector: "Power"}
+  - {symbol: TATASTEEL,  sector: "Metals & Mining"}

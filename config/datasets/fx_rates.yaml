@@ -1,0 +1,25 @@
+name: fx_rates
+description: >
+  FBIL reference rates for INR against USD, GBP, EUR and JPY (JPY quoted per 100). FBIL took
+  over administration of the RBI reference rate in July 2018, so this is the official INR fixing.
+source: fbil
+source_url: https://www.fbil.org.in/wasdm/refrates/fetchfiltered
+schedule: "Business days, ~13:30 IST"
+grain: one row per (rate_date, base_ccy)
+natural_key: [rate_date, base_ccy, quote_ccy]
+columns:
+  - {name: rate_date, dtype: date, nullable: false, description: Fixing date}
+  - {name: base_ccy, dtype: str, nullable: false, isin_set: [USD, GBP, EUR, JPY], description: Foreign currency}
+  - {name: quote_ccy, dtype: str, nullable: false, isin_set: [INR], description: Always INR}
+  - {name: units, dtype: float, nullable: false, gt: 0, description: "Units of base currency quoted (100 for JPY)"}
+  - {name: rate, dtype: float, nullable: false, gt: 0, description: INR per `units` of base currency}
+  - {name: source_ts, dtype: datetime, nullable: true, description: Publication time reported by FBIL (UTC)}
+  - {name: ingest_ts, dtype: datetime, nullable: false, description: Download time (UTC)}
+quality:
+  completeness_min: 0.98
+  timeliness_max_hours: 6
+  validity_min: 1.0
+  uniqueness_min: 1.0
+rules:
+  duplicate_keys: {severity: high}
+  fx_rate_outlier: {severity: medium, window: 20, z_threshold: 4.0}

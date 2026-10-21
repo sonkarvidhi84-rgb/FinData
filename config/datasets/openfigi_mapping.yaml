@@ -1,0 +1,26 @@
+name: openfigi_mapping
+description: >
+  OpenFIGI mapping of ISIN to FIGI. FIGI (Financial Instrument Global Identifier) is an open
+  OMG standard originated by Bloomberg, and it is free to use and redistribute.
+source: openfigi
+source_url: https://api.openfigi.com/v3/mapping
+schedule: "On demand when new ISINs appear"
+grain: one row per ISIN (the NSE listing, exchCode IN)
+natural_key: [isin]
+columns:
+  - {name: isin, dtype: str, nullable: false, pattern: "^IN[A-Z0-9]{9}[0-9]$", description: Queried ISIN}
+  - {name: figi, dtype: str, nullable: false, pattern: "^BBG[A-Z0-9]{9}$", description: FIGI of the Indian listing}
+  - {name: composite_figi, dtype: str, nullable: true, description: Composite (country-level) FIGI}
+  - {name: share_class_figi, dtype: str, nullable: true, description: Share-class FIGI (global)}
+  - {name: ticker, dtype: str, nullable: true, description: Ticker reported by OpenFIGI}
+  - {name: name, dtype: str, nullable: true, description: Instrument name}
+  - {name: security_type, dtype: str, nullable: true, description: e.g. Common Stock}
+  - {name: exch_code, dtype: str, nullable: true, description: Bloomberg exchange code}
+  - {name: ingest_ts, dtype: datetime, nullable: false, description: Download time (UTC)}
+quality:
+  completeness_min: 0.95
+  validity_min: 1.0
+  uniqueness_min: 1.0
+  consistency_min: 0.95
+rules:
+  duplicate_keys: {severity: medium}

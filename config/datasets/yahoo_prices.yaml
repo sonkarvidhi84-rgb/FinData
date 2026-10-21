@@ -1,0 +1,27 @@
+name: yahoo_prices
+description: >
+  Yahoo Finance daily OHLCV for the same NSE tickers (".NS" suffix), fetched with the unofficial
+  yfinance library. It is used only as a second source for accuracy cross-checks. Yahoo's Close
+  is split-adjusted but not dividend-adjusted.
+source: yahoo
+source_url: https://finance.yahoo.com (via yfinance)
+schedule: "Daily"
+grain: one row per (symbol, trade_date)
+natural_key: [symbol, trade_date]
+columns:
+  - {name: trade_date, dtype: date, nullable: false, description: Session date}
+  - {name: symbol, dtype: str, nullable: false, description: NSE ticker without the .NS suffix}
+  - {name: open, dtype: float, nullable: true, gt: 0, description: Open (split-adjusted)}
+  - {name: high, dtype: float, nullable: true, gt: 0, description: High (split-adjusted)}
+  - {name: low, dtype: float, nullable: true, gt: 0, description: Low (split-adjusted)}
+  - {name: close, dtype: float, nullable: true, gt: 0, description: Close (split-adjusted)}
+  - {name: adj_close, dtype: float, nullable: true, gt: 0, description: Close adjusted for splits and dividends}
+  - {name: volume, dtype: float, nullable: true, ge: 0, description: Volume (split-adjusted)}
+  - {name: ingest_ts, dtype: datetime, nullable: false, description: Download time (UTC)}
+quality:
+  completeness_min: 0.98
+  validity_min: 0.99
+  uniqueness_min: 1.0
+rules:
+  ohlc_sanity: {severity: low}
+  duplicate_keys: {severity: medium}

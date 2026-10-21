@@ -1,0 +1,21 @@
+name: fred_macro
+description: "US macro series from FRED (St. Louis Fed): CPI, effective Fed funds, 10y Treasury yield, VIX, USD/INR (H.10)."
+source: fred
+source_url: https://fred.stlouisfed.org/graph/fredgraph.csv?id={series}
+schedule: "Daily or monthly depending on the series"
+grain: one row per (series_id, obs_date)
+natural_key: [series_id, obs_date]
+series: [CPIAUCSL, DFF, DGS10, VIXCLS, DEXINUS]
+columns:
+  - {name: series_id, dtype: str, nullable: false, description: FRED series code}
+  - {name: obs_date, dtype: date, nullable: false, description: Observation date (period start for monthly series)}
+  - {name: value, dtype: float, nullable: true, description: "Observed value; null when FRED reports '.' (no observation, e.g. US holiday)"}
+  - {name: vintage_date, dtype: date, nullable: false, description: Date we observed this value (revision tracking)}
+  - {name: ingest_ts, dtype: datetime, nullable: false, description: Download time (UTC)}
+quality:
+  completeness_min: 0.95
+  validity_min: 1.0
+  uniqueness_min: 1.0
+rules:
+  duplicate_keys: {severity: high}
+  macro_revision_detected: {severity: low}
