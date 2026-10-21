@@ -2,8 +2,8 @@
 
 Canonical dtypes, the contract every downstream module relies on:
 
-* `date` columns are tz-naive `datetime64[ns]` normalised to midnight.
-* `datetime` columns are tz-aware UTC `datetime64[ns, UTC]`.
+* `date` columns are tz-naive `datetime64` (unit s/ns under pandas 3) normalised to midnight.
+* `datetime` columns are tz-aware UTC `datetime64[*, UTC]`.
 * `float`/`int` columns are `float64` (nullable ints are awkward in pandas; keys are never numeric).
 * `str` columns are pandas strings, with missing values as NA.
 """
