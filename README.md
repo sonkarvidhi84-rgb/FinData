@@ -30,6 +30,8 @@ To fetch live data (network required; clients are rate-limited and cache to `dat
 
 ```bash
 uv run findata ingest all --from 2024-01-01 --to 2024-06-30
+uv run findata validate all --mode raw    # load re-validates only if staging is missing
+uv run findata load --mode raw
 uv run findata samples build              # re-cut data/samples from raw
 ```
 
@@ -70,6 +72,10 @@ uv run ruff check . && uv run ruff format --check . && uv run mypy src   # mypy 
 - **A real anomaly:** on 2024-06-04, the day India's election results were counted, NTPC fell
   15.5% with no corporate action to explain it. USD/INR moved by 4.9 sigma and every ML flag
   fired on the same day. See [`docs/case-study.md`](docs/case-study.md).
+- **A real defect found in live data (full raw universe, not the sample):** 7,860 apparent
+  "missing sessions" across 158 small caps were stocks that NSE moved from the EQ series to
+  the BE trade-for-trade surveillance series. The EQ-only ingest contract was hiding them.
+  Documented, and the fix is pending approval (known issue R13).
 - **Two lessons the data taught the pipeline:** Yahoo restates history for *later* corporate
   actions, which produced 600 false positives until the comparison moved to returns. NESTLEIND's
   split changed its ISIN, which is why identifiers are modelled with validity windows.
@@ -88,8 +94,8 @@ before any reuse.
 - The NSE holiday calendar is derived from which days a bhavcopy was published.
 - Corporate actions are fetched only for the window. Fundamentals are not ingested.
 - Flag precision (0.76 on 50 flags) was labelled by the AI agent using written criteria; a
-  human still needs to re-label it. No data *defects* were found in this window, so the
-  detectors' ability to catch errors rests on synthetic unit-test fixtures.
+  human still needs to re-label it. The 20-stock sample contains no data *defects*. The one
+  real defect found so far (the EQ→BE series issue) came from the full raw universe.
 - Timeliness on a historical backfill partly measures NSE re-publishing files, not real
   latency.
 - SQLite by default. PostgreSQL works through `DATABASE_URL`, but has not been run in CI.

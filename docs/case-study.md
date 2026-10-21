@@ -51,6 +51,30 @@ every daily return), that no corporate action explains it, and that it hit many 
 stocks and the currency on the same day. That combination tells an analyst it is a *market
 event* rather than a *data error*, which is exactly the triage a quality team performs.
 
+## A real anomaly in the full live universe: stocks that "vanish" into the BE series
+
+The committed sample covers 20 large caps. Running `findata validate nse_prices --mode raw`
+over every EQ-series stock in the live H1-2024 bhavcopies (226,890 rows, about 2,600 symbols)
+raised **8,048 `missing_trading_days` flags across 158 symbols**. For example, 3PLAND has an EQ row
+on 2024-01-30 and none from 2024-01-31 onward.
+
+**Root cause**, checked against the cached bhavcopy files: on 2024-01-31 3PLAND appears under
+series **BE** (trade-for-trade, a surveillance segment where every trade must be settled by
+delivery) with the same symbol and ISIN, and it keeps trading there. Across all flags,
+**7,860 of 8,048 (97.7%)** are sessions in which the stock *did* trade, but in BE rather than
+EQ. Only 188 are genuinely absent (most likely suspensions; not verified).
+
+**Diagnosis:** this is a defect in our own ingestion contract, not in NSE's data.
+`nse_prices` keeps only series EQ, so a stock moved into surveillance looks as though it
+stopped trading. The planned fix is to keep EQ **and** BE (plus BZ for the suspended segment),
+record `series` as an attribute with its own validity window, and keep `(isin, trade_date)` as
+the natural key, since a stock trades in only one of these series on a given day. The
+20-stock sample is unaffected because NIFTY-50 constituents stay in EQ. Other
+full-universe flags were triaged too. Most of the 48 `stale_price` flags are liquid ETFs
+(e.g. ABSLLIQUID, whose price is pinned at 1,000 by design) and illiquid penny stocks, so the
+rule needs an instrument-type exemption. The 950 `unexplained_jump` flags outside the universe
+cannot be judged, because corporate actions were only fetched for the 20 stocks.
+
 ## Two data problems the pipeline caught in its own assumptions
 
 1. **Yahoo rewrites history.** The first cross-source accuracy check flagged 600 of 2,460
