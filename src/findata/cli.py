@@ -75,11 +75,20 @@ def load(mode: str = typer.Option("auto", help="raw | samples | auto")) -> None:
 
 
 @quality_app.command("run")
-def quality_run() -> None:
+def quality_run(
+    report_dir: str | None = typer.Option(None, help="Where to write the run report"),
+    model_dir: str | None = typer.Option(None, help="Where to persist the IsolationForest"),
+) -> None:
     """Compute quality metrics + statistical/ML anomalies and write dq_* tables and a report."""
-    from findata.quality.runner import run_quality
+    from pathlib import Path
 
-    result = run_quality()
+    from findata.quality import runner
+    from findata.quality.report import DEFAULT_REPORT_DIR
+
+    result = runner.run_quality(
+        report_dir=Path(report_dir) if report_dir else DEFAULT_REPORT_DIR,
+        model_dir=Path(model_dir) if model_dir else runner.DEFAULT_MODEL_DIR,
+    )
     typer.echo(result)
 
 
