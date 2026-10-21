@@ -25,3 +25,8 @@ nav:
   - Case study: case-study.md
   - ADRs:
       - adr/0001-storage-choice.md
+      - adr/0002-identifier-model.md
+      - adr/0003-adjusted-prices-as-view.md
+      - adr/0004-anomaly-detection-layers.md
+      - adr/0005-pandera-over-great-expectations.md
+      - adr/0006-source-choices.md

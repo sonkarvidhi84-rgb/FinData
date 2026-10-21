@@ -1,7 +1,10 @@
 name: gleif_lei
-description: GLEIF Legal Entity Identifier records for the issuers in the universe (looked up by ISIN), including the direct parent LEI.
+description: >
+  GLEIF Legal Entity Identifier records for the issuers in the universe, including the direct
+  parent LEI. Lookup tries filter[isin] first; GLEIF returned nothing for Indian ISINs, so it
+  falls back to an exact match on the normalised legal name (entity resolution).
 source: gleif
-source_url: "https://api.gleif.org/api/v1/lei-records?filter[isin]={isin}"
+source_url: "https://api.gleif.org/api/v1/lei-records (filter[isin], then filter[entity.legalName])"
 schedule: "Weekly"
 grain: one row per ISIN
 natural_key: [isin]
