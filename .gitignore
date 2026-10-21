@@ -1,0 +1,21 @@
+# environments & secrets
+.venv/
+.env
+__pycache__/
+*.pyc
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+site/
+
+# data: only data/samples is committed
+data/raw/*
+!data/raw/.gitkeep
+data/staging/*
+!data/staging/.gitkeep
+*.db
+*.db-journal
+models/*.joblib
+notebooks/.ipynb_checkpoints/

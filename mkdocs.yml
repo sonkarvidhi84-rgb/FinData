@@ -1,0 +1,27 @@
+site_name: FinData Quality Pipeline
+theme:
+  name: material
+  palette:
+    - scheme: default
+      toggle: {icon: material/brightness-7, name: Dark mode}
+    - scheme: slate
+      toggle: {icon: material/brightness-4, name: Light mode}
+markdown_extensions:
+  - tables
+  - admonition
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+nav:
+  - Home: index.md
+  - Data sources: data-sources.md
+  - Data dictionary: data-dictionary.md
+  - Lineage: lineage.md
+  - Validation rules: validation-rules.md
+  - Quality evaluation: quality-evaluation.md
+  - Known issues: known-issues.md
+  - Case study: case-study.md
+  - ADRs:
+      - adr/0001-storage-choice.md
