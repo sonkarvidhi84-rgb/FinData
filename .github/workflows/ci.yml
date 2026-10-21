@@ -1,0 +1,20 @@
+name: ci
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "30 14 * * 1-5"  # nightly offline pipeline run on samples
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --frozen
+      - run: uv run ruff check . && uv run ruff format --check .
+      - run: uv run mypy src
+      - run: uv run pytest -q --cov=src/findata --cov-fail-under=85
+      - name: Offline pipeline on samples
+        run: |
+          uv run findata load --mode samples
+          uv run findata quality run
