@@ -1,0 +1,32 @@
+start: '2024-01-01'
+end: '2024-06-30'
+source: 'derived from NSE bhavcopy availability (nsearchives UDiFF files): a weekday
+  with no file is a holiday, a weekend day with a file is a special session'
+holidays:
+- date: '2024-01-22'
+  name: No session (no bhavcopy published)
+- date: '2024-01-26'
+  name: No session (no bhavcopy published)
+- date: '2024-03-08'
+  name: No session (no bhavcopy published)
+- date: '2024-03-25'
+  name: No session (no bhavcopy published)
+- date: '2024-03-29'
+  name: No session (no bhavcopy published)
+- date: '2024-04-11'
+  name: No session (no bhavcopy published)
+- date: '2024-04-17'
+  name: No session (no bhavcopy published)
+- date: '2024-05-01'
+  name: No session (no bhavcopy published)
+- date: '2024-05-20'
+  name: No session (no bhavcopy published)
+- date: '2024-06-17'
+  name: No session (no bhavcopy published)
+special_sessions:
+- date: '2024-01-20'
+  name: Special weekend session
+- date: '2024-03-02'
+  name: Special weekend session
+- date: '2024-05-18'
+  name: Special weekend session

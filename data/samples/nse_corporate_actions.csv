@@ -1,0 +1,17 @@
+symbol,series,isin,company,subject,ex_date,record_date,face_value,action_type,ratio,amount,ingest_ts
+ASIANPAINT,EQ,INE021A01018,Asian Paints Limited,Dividend - Rs 28.15 Per Share,2024-06-11T00:00:00,2024-06-11T00:00:00,1.0,dividend,,28.15,2026-10-21T09:39:52+0000
+HDFCBANK,EQ,INE040A01018,HDFC Bank Limited,Dividend - Rs 19.50 Per Share,2024-05-10T00:00:00,2024-05-10T00:00:00,1.0,dividend,,19.5,2026-10-21T09:39:52+0000
+HINDUNILVR,EQ,INE030A01027,Hindustan Unilever Limited,Annual General Meeting/Dividend - Rs 24 Per Share,2024-06-14T00:00:00,,1.0,dividend,,24.0,2026-10-21T09:39:52+0000
+INFY,EQ,INE009A01021,Infosys Limited,Annual General Meeting/Special Dividend - Rs 8 Per Share /Dividend - Rs 20 Per Share,2024-05-31T00:00:00,2024-05-31T00:00:00,5.0,dividend,,28.0,2026-10-21T09:39:52+0000
+ITC,EQ,INE154A01025,ITC Limited,Interim Dividend - Rs 6.25 Per Share,2024-02-08T00:00:00,2024-02-08T00:00:00,1.0,dividend,,6.25,2026-10-21T09:39:52+0000
+ITC,EQ,INE154A01025,ITC Limited,Dividend - Rs 7.50 Per Share,2024-06-04T00:00:00,2024-06-04T00:00:00,1.0,dividend,,7.5,2026-10-21T09:39:52+0000
+LT,EQ,INE018A01030,Larsen & Toubro Limited,Dividend - Rs 28 Per Share,2024-06-20T00:00:00,2024-06-20T00:00:00,2.0,dividend,,28.0,2026-10-21T09:39:52+0000
+NESTLEIND,EQ,INE239A01016,Nestle India Limited,Face Value Split (Sub-Division) - From Rs10/- Per Share To Re 1/- Per Share,2024-01-05T00:00:00,2024-01-05T00:00:00,1.0,split,0.1,,2026-10-21T09:39:52+0000
+NESTLEIND,EQ,INE239A01016,Nestle India Limited,Interim Dividend - Rs 7 Per Share,2024-02-15T00:00:00,2024-02-15T00:00:00,1.0,dividend,,7.0,2026-10-21T09:39:52+0000
+NTPC,EQ,INE733E01010,NTPC Limited,Interim Dividend - Rs 2.25 Per Share,2024-02-06T00:00:00,2024-02-06T00:00:00,10.0,dividend,,2.25,2026-10-21T09:39:52+0000
+SBIN,EQ,INE062A01012,State Bank of India,Dividend - Rs 13.70 Per Share,2024-05-22T00:00:00,2024-05-22T00:00:00,1.0,dividend,,13.7,2026-10-21T09:39:52+0000
+SUNPHARMA,EQ,INE044A01028,Sun Pharmaceutical Industries Limited,Interim Dividend - Rs 8.50 Per Share,2024-02-09T00:00:00,2024-02-09T00:00:00,1.0,dividend,,8.5,2026-10-21T09:39:52+0000
+TATASTEEL,EQ,INE081A01012,Tata Steel Limited,Dividend - Rs 3.60 Per Share,2024-06-21T00:00:00,2024-06-21T00:00:00,1.0,dividend,,3.6,2026-10-21T09:39:52+0000
+TCS,EQ,INE467B01029,Tata Consultancy Services Limited,Interim Dividend - Rs 9 Per Share Special Dividend - Rs 18 Per Share,2024-01-19T00:00:00,2024-01-19T00:00:00,1.0,dividend,,27.0,2026-10-21T09:39:52+0000
+TCS,EQ,INE467B01029,Tata Consultancy Services Limited,Dividend - Rs 28 Per Share,2024-05-16T00:00:00,2024-05-16T00:00:00,1.0,dividend,,28.0,2026-10-21T09:39:52+0000
+TITAN,EQ,INE280A01010,Titan Company Limited,Annual General Meeting/Dividend - Rs 11 Per Share,2024-06-27T00:00:00,,1.0,dividend,,11.0,2026-10-21T09:39:52+0000
