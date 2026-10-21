@@ -364,19 +364,82 @@ def split_factor_series(
     return factor
 
 
+def cross_source_alignment(
+    primary: pd.DataFrame, secondary: pd.DataFrame, corporate_actions: pd.DataFrame | None
+) -> pd.DataFrame:
+    """Align NSE and second-source closes so they can be compared fairly.
+
+    Two corrections are needed before two vendors can be compared:
+
+    1. **In-window splits/bonuses.** NSE closes are unadjusted. They are multiplied by
+       `split_factor_series` from our own corporate actions.
+    2. **Out-of-window restatements.** Yahoo restates its whole history for corporate actions
+       that happen *after* our window: later bonuses, splits and demergers. In the 2024 data
+       Yahoo's close was 0.5x NSE for HDFCBANK and RELIANCE (bonuses that went ex later), 0.2x
+       for KOTAKBANK and 0.9629x for ITC (the 2025 ITC Hotels demerger). These are constant
+       scale factors over the window. They are estimated as `scale` (the median ratio), but
+       the comparison itself runs on **returns**, which are scale-invariant.
+
+    Returns are taken between consecutive dates *present in both sources*, so a day one
+    vendor skips (Yahoo has none of NSE's Saturday special sessions) cannot create a mismatch.
+
+    Returns:
+        One row per (symbol, trade_date) with `close` (adjusted NSE), `close_2`, `scale`,
+        `ret`, `ret_2` and `ret_diff_pct` (absolute return difference in percentage points;
+        NaN on each symbol's first common date).
+    """
+    cols = ["symbol", "trade_date", "close"]
+    out_cols = [*cols, "close_2", "split_factor", "scale", "ret", "ret_2", "ret_diff_pct"]
+    left = primary[cols].assign(trade_date=pd.to_datetime(primary["trade_date"]))
+    right = secondary[cols].rename(columns={"close": "close_2"})
+    right = right.assign(trade_date=pd.to_datetime(right["trade_date"]))
+    merged = (
+        left.merge(right, on=["symbol", "trade_date"], how="inner")
+        .dropna(subset=["close", "close_2"])
+        .sort_values(["symbol", "trade_date"])
+    )
+    has_ca = _has(corporate_actions, ["symbol", "ex_date", "action_type", "ratio"])
+    frames: list[pd.DataFrame] = []
+    for symbol, grp in merged.groupby("symbol", sort=True):
+        grp = grp.copy()
+        if has_ca:
+            assert corporate_actions is not None
+            acts = corporate_actions[corporate_actions["symbol"] == symbol]
+            acts = acts[acts["action_type"].isin(PRICE_ACTIONS) & acts["ratio"].notna()]
+            ex_dates, ratios = list(acts["ex_date"]), [float(r) for r in acts["ratio"]]
+        else:
+            ex_dates, ratios = [], []
+        factor = split_factor_series(grp["trade_date"], ex_dates, ratios)
+        grp["close"] = grp["close"] * factor
+        grp["split_factor"] = factor
+        grp["scale"] = float((grp["close_2"] / grp["close"]).median())
+        grp["ret"] = grp["close"].pct_change()
+        grp["ret_2"] = grp["close_2"].pct_change()
+        grp["ret_diff_pct"] = (grp["ret"] - grp["ret_2"]).abs() * 100.0
+        frames.append(grp)
+    if not frames:
+        return pd.DataFrame(columns=out_cols)
+    return pd.concat(frames, ignore_index=True)[out_cols]
+
+
 def cross_source_price_diff(df: pd.DataFrame, ctx: RuleContext) -> list[Anomaly]:
-    """Flag NSE closes that disagree with the second source (Yahoo) by more than X%.
+    """Flag days where NSE and the second source (Yahoo) disagree on the day's price move.
 
-    Financial problem: two independent sources rarely disagree on an official close. A gap means
-    one of them is wrong: a stale or bad tick, a wrong-security mapping, or a missed corporate
-    action. This is how *accuracy* is measured when nobody hands you the truth.
+    Financial problem: two independent vendors rarely disagree about an official close. A
+    disagreement means one of them is wrong: a bad or stale tick, a wrong-security mapping,
+    or a corporate action one side missed. This is how *accuracy* is measured when nobody
+    hands you the truth.
 
-    Yahoo's `Close` is split-adjusted, so NSE closes before a split/bonus are first multiplied by
-    `split_factor_series` built from our corporate actions. Dividends aren't adjusted on either
-    side.
+    The comparison is on close-to-close returns over common dates, after in-window split
+    adjustment (see `cross_source_alignment`). Price levels are not compared, because Yahoo
+    restates history for later corporate actions. A missed split therefore surfaces on its
+    ex-date, and a bad tick on its own day (and usually the reversal day after).
+
+    A low-severity `cross_source_basis` anomaly is also emitted once per symbol whose level
+    scale differs from 1. It is not an error, but anyone reconciling levels needs to know.
 
     Params:
-        threshold_pct: allowed absolute percentage difference (e.g. 0.5).
+        threshold_pct: Allowed absolute return difference, in percentage points (e.g. 0.5).
     """
     sec = ctx.secondary
     if not _has(sec, ["symbol", "trade_date", "close"]) or not _has(
@@ -386,29 +449,33 @@ def cross_source_price_diff(df: pd.DataFrame, ctx: RuleContext) -> list[Anomaly]
     assert sec is not None
     thr = float(ctx.params.get("threshold_pct", 0.5))
     sev = ctx.severity("medium")
-    right = sec[["symbol", "trade_date", "close"]].rename(columns={"close": "close_2"})
-    left = df[["symbol", "trade_date", "close"]].copy()
-    left["trade_date"] = pd.to_datetime(left["trade_date"])
-    right = right.assign(trade_date=pd.to_datetime(right["trade_date"]))
-    merged = left.merge(right, on=["symbol", "trade_date"], how="inner").dropna(
-        subset=["close", "close_2"]
-    )
+    aligned = cross_source_alignment(df, sec, ctx.corporate_actions)
     out: list[Anomaly] = []
-    for symbol, grp in merged.groupby("symbol", sort=True):
-        acts = _actions_for(ctx, str(symbol))
-        if "ratio" in acts.columns:
-            acts = acts[acts["action_type"].isin(PRICE_ACTIONS) & acts["ratio"].notna()]
-        else:
-            acts = acts.iloc[0:0]
-        factor = split_factor_series(
-            grp["trade_date"], list(acts["ex_date"]), [float(r) for r in acts.get("ratio", [])]
-        )
-        adj = grp["close"] * factor
-        diff = (adj - grp["close_2"]).abs() / grp["close_2"] * 100.0
-        for i in diff.index[diff > thr]:
-            day = grp.at[i, "trade_date"]
-            f = float(factor.loc[i])
-            note = f" (NSE x split factor {f:.4g})" if f != 1.0 else ""
+    for symbol, grp in aligned.groupby("symbol", sort=True):
+        scale = float(grp["scale"].iloc[0])
+        if abs(scale - 1.0) * 100.0 > thr:
+            out.append(
+                Anomaly(
+                    dataset=ctx.dataset,
+                    rule="cross_source_basis",
+                    severity="low",
+                    record_key=f"{symbol}|basis",
+                    detail=(
+                        f"Yahoo close is {scale:.4f}x the split-adjusted NSE close across the "
+                        "window: Yahoo restated history for a corporate action outside it. "
+                        "Levels are not comparable; returns are."
+                    ),
+                    symbol=str(symbol),
+                    obs_date=_d(grp["trade_date"].iloc[0]),
+                    value=scale,
+                )
+            )
+        flagged = grp[grp["ret_diff_pct"] > thr]
+        for rec in flagged.to_dict("records"):
+            day = rec["trade_date"]
+            f = float(rec["split_factor"])
+            diff = float(rec["ret_diff_pct"])
+            note = f", NSE x split factor {f:.4g}" if f != 1.0 else ""
             out.append(
                 Anomaly(
                     dataset=ctx.dataset,
@@ -416,18 +483,17 @@ def cross_source_price_diff(df: pd.DataFrame, ctx: RuleContext) -> list[Anomaly]
                     severity=sev,
                     record_key=f"{symbol}|{_d(day)}",
                     detail=(
-                        f"NSE close {adj.loc[i]:.2f}{note} vs Yahoo {grp.at[i, 'close_2']:.2f}: "
-                        f"{diff.loc[i]:.2f}% apart (tolerance {thr}%)"
+                        f"Daily return NSE {float(rec['ret']) * 100:+.2f}% vs Yahoo "
+                        f"{float(rec['ret_2']) * 100:+.2f}%: {diff:.2f}pp apart "
+                        f"(tolerance {thr}pp{note}; NSE close {float(rec['close']):.2f}, "
+                        f"Yahoo {float(rec['close_2']):.2f})"
                     ),
                     symbol=str(symbol),
                     obs_date=_d(day),
-                    value=float(diff.loc[i]),
+                    value=diff,
                 )
             )
     return out
-
-
-# --------------------------------------------------------------------------- identifiers
 
 
 def identifier_conflict(df: pd.DataFrame, ctx: RuleContext) -> list[Anomaly]:

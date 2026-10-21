@@ -275,8 +275,21 @@ def test_cross_source_flags_missed_split_and_bad_tick() -> None:
     nse = prices([1000, 100, 110])
     yahoo = prices([100, 100, 101])
     out = cross_source_price_diff(nse, ctx(params={"threshold_pct": 0.5}, secondary=yahoo))
-    assert [a.record_key for a in out] == ["AAA|2024-01-01", "AAA|2024-01-03"]
-    assert out[0].value == pytest.approx(900.0)
+    flags = [a for a in out if a.rule == "cross_source_price_diff"]
+    # the missed split surfaces on its ex-date (-90% vs 0%), the bad tick on its own day
+    assert [a.record_key for a in flags] == ["AAA|2024-01-02", "AAA|2024-01-03"]
+    assert flags[0].value == pytest.approx(90.0)
+    assert flags[1].value == pytest.approx(9.0)
+
+
+def test_cross_source_restated_history_is_basis_not_error() -> None:
+    # Yahoo restated for a later 1:1 bonus: constant 0.5x, identical returns
+    nse = prices([100, 102, 101])
+    yahoo = prices([50, 51, 50.5])
+    out = cross_source_price_diff(nse, ctx(params={"threshold_pct": 0.5}, secondary=yahoo))
+    assert [a.rule for a in out] == ["cross_source_basis"]
+    assert out[0].severity == "low"
+    assert out[0].value == pytest.approx(0.5)
 
 
 def test_cross_source_without_secondary() -> None:
