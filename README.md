@@ -44,13 +44,21 @@ uv run ruff check . && uv run ruff format --check . && uv run mypy src   # mypy 
 
 ## Screenshots
 
-> _Placeholders._ The dashboard was smoke-tested (Streamlit AppTest across all three tabs,
-> plus a live health check), but headless capture only rendered the loading skeleton.
-> Capture these from `findata dashboard`:
->
-> 1. `docs/img/quality-overview.png`: Quality Overview tab (traffic-light table)
-> 2. `docs/img/anomalies.png`: Anomalies tab, NTPC 2024-06-04 selected
-> 3. `docs/img/analytics.png`: Analytics tab
+**Quality Overview:** one traffic light per dataset × dimension, plus the metric history.
+(This capture is from a run made while the World Bank API was down, so its counts are
+28/1/0 rather than 31/1/0.)
+
+![Quality Overview tab](docs/img/quality-overview.png)
+
+**Anomalies:** filterable flag list, and the NTPC 2024-06-04 drop plotted against Yahoo with
+corporate actions marked. Each flag can be marked reviewed or false positive.
+
+![Anomalies tab](docs/img/anomalies.png)
+
+**Analytics:** sector-adjusted returns around dividend ex-dates, and INR-hedged vs unhedged
+returns for a USD investor.
+
+![Analytics tab](docs/img/analytics.png)
 
 ## What's inside
 
